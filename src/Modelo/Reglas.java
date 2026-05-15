@@ -11,9 +11,9 @@ public class Reglas {
 
     public static Reglas getInstance(){
         if(instance==null){
-            instance=new Reglas();
+            instance=new Reglas(); //si no existe creo una instancia
         }
-        return instance;
+        return instance; //si ya existe, la devuelvo
     }
 
     private int[] cantidadDados(ArrayList<Dado> dados){ //cuenta la cantidad de dados que hay de cada numero

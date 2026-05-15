@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public interface IJuego extends IObservableRemoto {
     //config inicial
     int siguienteNroJ() throws RemoteException;
-    void iniciar_jugador(Jugador jugador) throws RemoteException;
+    int iniciar_jugador(String nombre) throws RemoteException;
     void comenzarJuego() throws RemoteException;
 
     //acciones del juego
@@ -23,7 +23,10 @@ public interface IJuego extends IObservableRemoto {
     int getNroRonda() throws RemoteException;
     Jugador getJugadorActual() throws RemoteException;
     EstadoJugada getEstadoJugada() throws RemoteException;
-
     //volver a empezar
     void resetearJuego() throws RemoteException;
+
+    //agregados
+    boolean jugadorEsta(String nombre) throws RemoteException;
+    void confirmacion_del_puntaje(String nombre) throws RemoteException;
 }

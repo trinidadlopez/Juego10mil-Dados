@@ -54,6 +54,7 @@ public class VLobby extends JFrame {
     public void actualizarJugadores(ArrayList<Jugador> jugadores) throws RemoteException {
         panelJugadores.removeAll();
         for (Jugador j : jugadores) {
+            System.out.println("Lobby. actualizarJugadores(). jugador:" + j.getNombreJugador());
             JLabel lblJugador = new JLabel("Id: " + j.getNroJugador() + " - Nombre: " +j.getNombreJugador());
             panelJugadores.add(lblJugador);
         }
@@ -64,7 +65,7 @@ public class VLobby extends JFrame {
         } else {
             lblEstado.setText("Esperando a mas jugadores...\n Jugadores conectados: " + jugadores.size() + "/6.");
         }
-        if(jugadores.size() == 6 ){
+        if(jugadores.size() == 6 && timer.isRunning()){
             timer.stop();
             controlador.comenzarJuego();
         }

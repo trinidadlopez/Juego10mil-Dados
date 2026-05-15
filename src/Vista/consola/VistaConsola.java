@@ -18,13 +18,12 @@ public class VistaConsola extends JFrame implements IVista{
     private JPanel panel;
     private JTextField txtEntradaJugador; //simula la entrada por teclado, en vez de usar scanner
     private EstadoVistaConsola estado; //estado actual
-    private EstadoVistaConsola estadoAnterior; //estado anterior por si quiere presionar "volver" y saber en que estado estaba
     private Timer timer;
     private ArrayList<String[]> tablaPuntajes = new ArrayList<>();
     private JPanel panelAbajo;
     private JLabel indicacion;
 
-    public VistaConsola(Controlador controlador) throws RemoteException {
+    public VistaConsola(Controlador controlador) throws RemoteException { //armo toda la ventana
         this.controlador = controlador;
         txtSalida = new JTextArea();
         txtEntradaJugador = new JTextField();
@@ -78,7 +77,7 @@ public class VistaConsola extends JFrame implements IVista{
 
     // LOBBY=================
     @Override
-    public void lobbyListo(){
+    public void lobbyListo(){ //lo llama el controlador cuando hay al menos 2 jugadores en el lobby, para que empiece a correr el timer
         if(timer == null || !timer.isRunning()){
             iniciarTimer();
             timer.start();
@@ -86,20 +85,27 @@ public class VistaConsola extends JFrame implements IVista{
     }
 
     @Override
-    public void actualizarLobby(ArrayList<Jugador> j) throws RemoteException {
-        ArrayList<Jugador> jugadores = controlador.jugadoresLobby();
-        if(estado == EstadoVistaConsola.ESPERANDO_JUGADORES){
-            mostrarJugadores(jugadores);
-            if(jugadores.size() < 2){
+    public void actualizarLobby(ArrayList<Jugador> jugadores) throws RemoteException {
+        SwingUtilities.invokeLater(() -> {
+            limpiarPantalla();
+            mostrarJugadores(jugadores); //muestro la cantidad de jugadores actuales en el lobby, cada vez q uno ingresa
+            if(jugadores.size() == 1 ){
                 println("Esperando al menos 2 jugadores (" + jugadores.size() + "/6)");
             }else{
                 println("Esperando a mas jugadores... Jugadores conectados: " + jugadores.size() + "/6");
             }
-        }
+            if(jugadores.size() == 6 && timer != null && timer.isRunning()){ //si ya hay 6 jugadores para el timer, y comienza el juego
+                timer.stop();
+                try {
+                    controlador.comenzarJuego();
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
-    public void mostrarJugadores(ArrayList<Jugador> jugadores){
-        limpiarPantalla();
+    private void mostrarJugadores(ArrayList<Jugador> jugadores){
         txtEntradaJugador.setEditable(false);
         println("Jugadores en lobby:");
         for(Jugador j: jugadores){
@@ -107,19 +113,17 @@ public class VistaConsola extends JFrame implements IVista{
         }
     }
 
-    public void mostrarLobby(){
-    }
 
     // INICIOS=================
     @Override
-    public void iniciar(){
+    public void iniciar(){ //conecta la vista con el controlador y muestra el menu principal
         controlador.setVista(this);
         setVisible(true);
         mostrarMenuPrincipal();
     }
 
     @Override
-    public void iniciar_juego(String nombre, boolean esMiTurno){
+    public void iniciar_juego(String nombre, boolean esMiTurno){ //limpio la pantalla y muestro el turno del jugador actual
         limpiarPantalla();
         println("EL JUEGO COMENZÓ");
         println("-----------------------");
@@ -157,7 +161,7 @@ public class VistaConsola extends JFrame implements IVista{
         print("Ingrese su nombre: ");
     }
 
-    public void procesarEntradaMP(String entrada) throws RemoteException {
+    public void procesarEntradaMP(String entrada) throws RemoteException { //procesa la opcion que eligio el jugador del menu principal. solo permite 1,2,3 o 4, otra opcion da error
         println(entrada);
         switch(entrada){
             case "1": //presiono. jugar
@@ -182,7 +186,7 @@ public class VistaConsola extends JFrame implements IVista{
     }
 
     // PROCESAMIENTO DE ENTRADAS=================
-    private void procesarEntradaJugador(String entrada) throws RemoteException {
+    private void procesarEntradaJugador(String entrada) throws RemoteException { //se ejecuta cada vez que un jugador presiona enter, y se delega al metodo correspondiente segun el estado
         switch (estado){
             case MENU_PRINCIPAL:
                 procesarEntradaMP(entrada);
@@ -214,16 +218,15 @@ public class VistaConsola extends JFrame implements IVista{
             case ESPERANDO_DECISION:
                 procesarDecision(entrada);
                 break;
+            case VOLVER_AL_MP:
+                mostrarMenuPrincipal();
             case ULTIMA_DECISION:
                 procesarUltimaDecision(entrada);
                 break;
-            case ESPERANDO_TECLA:
-                controlador.terminarJuego();
-                setVisible(false);
         }
     }
 
-    public void procesarDecision(String entrada) throws RemoteException {
+    public void procesarDecision(String entrada) throws RemoteException { //se ejecuta cuando el jugador elige una opcion de plantarse, apartar o lanzar dados
         switch(entrada){
             case "1":
                 controlador.apartarDados();
@@ -239,7 +242,7 @@ public class VistaConsola extends JFrame implements IVista{
         }
     }
 
-    private void procesarUltimaDecision(String entrada) throws RemoteException {
+    private void procesarUltimaDecision(String entrada) throws RemoteException { //se ejecuta cuando se termino la partida, para saber que opcion quiere:
         switch(entrada){
             case "1": //presiono. volver a jugar
                 limpiarTablaPuntaje();
@@ -271,15 +274,15 @@ public class VistaConsola extends JFrame implements IVista{
 
     // TURNO, DADOS Y BOTONES=================
     @Override
-    public void mostrarMisDados(ArrayList<Integer> valores){ //dsp de que se lanzen los dados: si soy yo:
+    public void mostrarMisDados(ArrayList<Integer> valores){ //imprime los dados lanzados si soy el jugador actual
         println("");
         println("Tus dados lanzados son: " + valores);
     }
 
     @Override
-    public void mostrarDadosOtros(ArrayList<Integer> valores){ //si es otro:
+    public void mostrarDadosOtros(ArrayList<Integer> valores){ //imprime los dados lanzados si es otro el jugador actual:
         println("");
-        println("Dados del oponente: " + valores);
+        println("Dados lanzados por: " + valores);
     }
     @Override
     public void mostrarDadosApartados(ArrayList<Integer> d){
@@ -298,7 +301,7 @@ public class VistaConsola extends JFrame implements IVista{
     }
 
     @Override
-    public void chequear_botones_y_turno(String nombre, boolean es_mi_turno){
+    public void chequear_botones_y_turno(String nombre, boolean es_mi_turno){ //se llama cuando cambia el turno para saber que botones habilitar segun si es juegador actual o no, ademas se muestran mensajes del turno
         if(es_mi_turno){
             txtEntradaJugador.setEditable(true);
             println("");
@@ -311,15 +314,10 @@ public class VistaConsola extends JFrame implements IVista{
             txtEntradaJugador.setEditable(false);
         }
 
-        try {
-            controlador.procesar_eventos_pendientes();
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
-    public void solo_chequear_botones(boolean esMiTurno){
+    public void solo_chequear_botones(boolean esMiTurno){ //se usa dsp de apartar cuando el jugador es el mismo y el turno no se actualizo, solo habilita y deshabilita
         if(esMiTurno) {
             println("Es tu turno!");
             println("Presione 1 para volver a lanzar!");
@@ -331,34 +329,38 @@ public class VistaConsola extends JFrame implements IVista{
     @Override
     public void mensajeDadosSinPuntos(String nombre) throws RemoteException {
         println("¡Dados sin puntos! En esta ronda " + nombre + " no suma puntos");
-        controlador.procesar_eventos_pendientes();
+        controlador.confirmar_mensaje();
+        controlador.respuesta_puntaje();
     }
 
     @Override
     public void mensajeEscalera(String nombre) throws RemoteException {
         println(nombre + " obtuvo escalera! +500 puntos. Turno finalizado");
-        controlador.procesar_eventos_pendientes();
+        controlador.confirmar_mensaje();
+        controlador.respuesta_puntaje();
     }
     @Override
     public void mensajeSePlanto(String nombre, int puntos) throws RemoteException {
         println("");
         println(nombre + " se plantó, suma " + puntos + " puntos.");
-        controlador.procesar_eventos_pendientes();
+        controlador.confirmar_mensaje();
+        controlador.respuesta_puntaje();
     }
 
     @Override
     public void mensajeMaxApartado(String nombre, int punto) throws RemoteException {
         println("");
         println(nombre + " apartó la cantidad maxima de dados. Sus puntos en esta ronda son: " + punto);
-        controlador.procesar_eventos_pendientes();
+        controlador.confirmar_mensaje();
+        controlador.respuesta_puntaje();
     }
 
     @Override
     public void msjJugadorFuera() throws RemoteException {
         limpiarPantalla();
         println("Usted no pudo ser agregado porque la partida ya está en curso! Intentelo más tarde.");
-        estado = EstadoVistaConsola.ESPERANDO_TECLA;
-        println("Presione cualquier tecla y luego ENTER para cerrar la ventana!");
+        print("(Presione cualquier tecla para volver al menu principal)");
+        estado = EstadoVistaConsola.VOLVER_AL_MP;
     }
 
     @Override
@@ -402,14 +404,11 @@ public class VistaConsola extends JFrame implements IVista{
         }
         println("-----------------------------------------------------------------------------------------------------------------");
         println("");
-
-        controlador.procesar_eventos_pendientes();
     }
 
     // RANKING=================
     public void mostrarRanking() throws RemoteException {
         limpiarPantalla();
-        estadoAnterior = estado;
         estado = EstadoVistaConsola.RANKING;
         println("RANKING");
         println("----------------------------------------------");
@@ -467,7 +466,6 @@ public class VistaConsola extends JFrame implements IVista{
     @Override
     public void mostrarReglas(){
         limpiarPantalla();
-        estadoAnterior = estado;
         estado = EstadoVistaConsola.REGLAS;
         limpiarPantalla();
         println("REGLAS y COMO JUGAR - Juego 10mil - Dados");
@@ -535,6 +533,23 @@ public class VistaConsola extends JFrame implements IVista{
             }
         });
         timer.setRepeats(false);
+    }
+
+    //metodos de la vista grafica sin implementar aca
+    public void mostrarLobby() throws RemoteException {
+        ArrayList<Jugador> jugadores = controlador.jugadoresLobby();
+        limpiarPantalla();
+        txtEntradaJugador.setEditable(false);
+        println("Jugadores en lobby:");
+        for(Jugador j: jugadores){
+            println("ID: " + j.getNroJugador() + " - Nombre: " + j.getNombreJugador() );
+        }
+    }
+
+    public void msjNombreRepetido() throws RemoteException{
+        estado = EstadoVistaConsola.INGRESO_NOMBRE_JUGADOR;
+        println("");
+        println("¡Lo siento! El nombre que ingresó ya está en uso! Intente con otro.");
     }
 
 

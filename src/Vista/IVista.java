@@ -14,7 +14,7 @@ public interface IVista {
 
     //lobby
     void lobbyListo();
-    void mostrarLobby();
+    void mostrarLobby() throws RemoteException;
     void actualizarLobby(ArrayList<Jugador> j) throws RemoteException;
     void msjJugadorFuera() throws RemoteException;
 
@@ -35,6 +35,7 @@ public interface IVista {
     void mensajeDadosSinPuntos(String nombre) throws RemoteException;
     void mostrarGanador(String nombre, int puntos);
     void mensajeMaxApartado(String nombre, int punto) throws RemoteException;
+    void msjNombreRepetido() throws RemoteException;
 
     //puntajes
     void agregarPuntajeRondaTabla(int puntaje, String nombre, int puntajeTotal, int ronda);

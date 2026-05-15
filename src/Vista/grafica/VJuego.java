@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 public class VJuego extends JFrame {
     private Controlador controlador;
+    private VistaGrafica vista;
     private JLabel fondo;
     private JLabel cubilete;
     private JButton btnLanzar;
@@ -25,14 +26,15 @@ public class VJuego extends JFrame {
     private JDMensajes mensajes;
     private JDPuntaje tabla_puntaje;
 
-    public VJuego(Controlador controlador) {
-        inicializar_comp(controlador);
+    public VJuego(Controlador controlador, VistaGrafica vista) {
+        inicializar_comp(controlador, vista);
     }
 
-    private void inicializar_comp(Controlador controlador) {
+    private void inicializar_comp(Controlador controlador, VistaGrafica vista) {
         this.controlador = controlador;
+        this.vista=vista;
 
-        mensajes = new JDMensajes(this,controlador);
+        mensajes = new JDMensajes(this,controlador, vista);
         tabla_puntaje = new JDPuntaje(this,controlador);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -195,7 +197,7 @@ public class VJuego extends JFrame {
         mensajes.dadosSinPuntos(nombre);
     }
 
-    public void msjMaxApartado(String nombre,int punto){
+    public void msjMaxApartado(String nombre,int punto) throws RemoteException {
         deshabilitarBotonesTodos();
         mensajes.maxApartado(nombre, punto);
     }
@@ -204,6 +206,9 @@ public class VJuego extends JFrame {
         mensajes.jugadorFuera();
     }
 
+    public void nombre_repetido(){
+        mensajes.nombreRepetido();
+    }
     // actualizar
     public void actualizarListaDados(ArrayList<Integer> valores, JPanel panel, int ancho, int alto, ArrayList<JLabel> lista){
         panel.removeAll();

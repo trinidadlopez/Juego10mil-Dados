@@ -27,7 +27,7 @@ public class VistaGrafica implements IVista {
         menuPrincipal = new VMenuPrincipal(this, controlador);
         nombreJugador = new VNombreJugador(this, controlador);
         lobby = new VLobby(controlador);
-        ventanaJuego= new VJuego(controlador);
+        ventanaJuego= new VJuego(controlador, this);
         ventana_reglas = new VReglas(this);
         ranking = new JDRanking(menuPrincipal, this);
         mostrarMenuPrincipal();
@@ -92,16 +92,17 @@ public class VistaGrafica implements IVista {
     }
 
     public void actualizarLobby(ArrayList<Jugador> jugadores) throws RemoteException{
+        System.out.println("VistaGracia. actualizarLobby, hace lobby.actualizarJugadores()");
         lobby.actualizarJugadores(jugadores);
     }
 
-    @Override
+     @Override
     public void lobbyListo() {
         lobby.timer.start();; // SOLO el que arranca
     }
 
     //mensajes
-    public void mensajeSePlanto(String nombre, int puntos){
+    public void mensajeSePlanto(String nombre, int puntos) throws RemoteException {
         ventanaJuego.deshabilitarBotonesTodos();
         ventanaJuego.msjPlantado(nombre, puntos);
     }
@@ -110,17 +111,21 @@ public class VistaGrafica implements IVista {
         ventanaJuego.jugador_fuera();
     }
 
-    public void mensajeEscalera(String nombre){
+    public void msjNombreRepetido(){
+        ventanaJuego.nombre_repetido();
+    }
+
+    public void mensajeEscalera(String nombre) throws RemoteException {
         ventanaJuego.deshabilitarBotonesTodos();
         ventanaJuego.msjEscalera(nombre);
     }
 
-    public void mensajeDadosSinPuntos(String nombre){
+    public void mensajeDadosSinPuntos(String nombre) throws RemoteException {
         ventanaJuego.deshabilitarBotonesTodos();
         ventanaJuego.msjDadosSinPuntos(nombre);
     }
 
-    public void mensajeMaxApartado(String nombre, int punto){
+    public void mensajeMaxApartado(String nombre, int punto) throws RemoteException {
         ventanaJuego.msjMaxApartado(nombre, punto);
     }
 

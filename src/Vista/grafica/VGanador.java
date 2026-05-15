@@ -28,7 +28,7 @@ public class VGanador extends JFrame {
         //mensaje
         mensaje =new JLabel("<html><center>" +
                 "|PARTIDA TERMINADA| <br><br>" +
-                "Ganador/es de la partida: " + nombreGanador + "<br>" +
+                "Ganador/a de la partida: " + nombreGanador + "<br>" +
                 "Con una puntuación de: " + puntosGanador +
                 "</center></html>"
         );

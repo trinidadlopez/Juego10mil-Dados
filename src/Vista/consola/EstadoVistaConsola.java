@@ -10,5 +10,5 @@ public enum EstadoVistaConsola {
     RANKING,
     ESPERANDO_JUGADORES,
     LANZAR_DADOS_Y_LIMPIAR,
-    ESPERANDO_TECLA
+    VOLVER_AL_MP
 }
